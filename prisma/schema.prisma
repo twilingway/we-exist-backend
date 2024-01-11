@@ -17,11 +17,20 @@ model User {
   provider  Provider?
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
-  roles     Role[]
-  Token     Token[]
+  roles     Role[]    @default([USER])
+  token     Token[]
   isBlocked Boolean   @default(false) @map("is_blocked")
+  orders    Order[]
+  profile   Profile?
 
   @@map("users")
+}
+
+model Profile {
+  id     Int    @id @default(autoincrement())
+  bio    String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
 }
 
 model Token {
@@ -34,13 +43,44 @@ model Token {
   @@map("tokens")
 }
 
+model Order {
+  id          Int         @id @default(autoincrement())
+  address     String
+  phone       String
+  name        String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
+  orderStatus OrderStatus @default(NEW) @map("order_status")
+  orderType   OrderType   @map("order_type")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
 enum Role {
   ADMIN
   MANAGER
   USER
+  PSYCHOLOGIST
 }
 
 enum Provider {
   GOOGLE
   YANDEX
+}
+
+enum OrderType {
+  FREE
+  CALLBACK
+  EDUCATION
+}
+
+enum OrderStatus {
+  NEW
+  WORK
+  PSYCHOLOGIST
+  CANCELLED
+  EXECUTED
+  DELETED
 }

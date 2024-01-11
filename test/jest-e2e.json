@@ -12,6 +12,8 @@
   },
   "moduleNameMapper": {
     "@common/common/(.*)": "<rootDir>/../libs/common/src/$1",
-    "@common/common": "<rootDir>/../libs/common/src"
+    "@common/common": "<rootDir>/../libs/common/src",
+    "@lib/entities/(.*)": "<rootDir>/../libs/entities/src/$1",
+    "@lib/entities": "<rootDir>/../libs/entities/src"
   }
 }
