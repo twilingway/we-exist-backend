@@ -1,14 +1,16 @@
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
     app.setGlobalPrefix('api');
     app.enableCors();
     app.use(cookieParser());
     app.useGlobalInterceptors();
+    app.enableShutdownHooks();
+
     const config = new DocumentBuilder()
         .setTitle('Alive example')
         .setDescription('The Alive API description')
