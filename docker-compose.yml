@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+    node:
+        container_name: twilingway-we-exist
+        build: .
+        image: twilingway/we-exist
+        env_file:
+            - .env
+        ports:
+            - 3003:3003

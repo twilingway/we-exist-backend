@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Order, OrderStatus, OrderType } from '@prisma/client';
 import { Exclude } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateOrderDto implements Order {
     @Exclude()
@@ -30,6 +30,5 @@ export class CreateOrderDto implements Order {
     name: string | null;
 
     @ApiProperty({ description: 'Order type', nullable: false, enum: OrderType })
-    @IsEnum(OrderType)
     orderType: OrderType;
 }

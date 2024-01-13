@@ -1,8 +1,6 @@
-import { AggregateRoot } from '@nestjs/cqrs';
-import { ApiProperty } from '@nestjs/swagger';
 import { Order, OrderStatus, OrderType } from '@prisma/client';
 import { Exclude } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class OrderResponse implements Order {
     id: number;
@@ -19,7 +17,6 @@ export class OrderResponse implements Order {
     @IsNotEmpty()
     name: string;
 
-    @IsEnum(OrderStatus)
     orderStatus: OrderStatus;
 
     @Exclude()
