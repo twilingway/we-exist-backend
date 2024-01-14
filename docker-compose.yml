@@ -4,7 +4,16 @@ services:
     node:
         container_name: twilingway-we-exist
         build: .
-        image: twilingway/we-exist
+        image: twilingway/we-exist:0.0.1
+        environment:
+            - DATABASE_URL=${DATABASE_URL}
+            - JWT_EXP=${JWT_EXP}
+            - JWT_SECRET=${JWT_SECRET}
+            - ADMIN_EMAIL=${ADMIN_EMAIL}
+            - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+            - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+            - YANDEX_APP_ID=${YANDEX_APP_ID}
+            - YANDEX_APP_SECRET=${YANDEX_APP_SECRET}
         env_file:
             - .env
         ports:

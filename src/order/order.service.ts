@@ -1,7 +1,8 @@
 import { JwtPayload } from '@auth/interfaces';
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Order, OrderStatus, Role } from '@prisma/client';
+import { PrismaClientValidationError } from '@prisma/client/runtime/library';
 import { PrismaService } from '@prisma/prisma.service';
 
 @Injectable()
@@ -26,7 +27,15 @@ export class OrderService {
             })
             .catch((error) => {
                 this.logger.error(error);
-                return null;
+                console.log('error :>> ', error);
+                console.debug('error.error :>> ', error);
+                if (error instanceof PrismaClientValidationError) {
+                    // Извлекаем сообщение об ошибке
+                    const errorMessage = extractErrorMessage(error.message);
+
+                    throw new HttpException(`Ошибка валидации данных: ${errorMessage}`, HttpStatus.BAD_REQUEST);
+                }
+                throw new HttpException('Внутренняя ошибка сервера', HttpStatus.INTERNAL_SERVER_ERROR);
             });
 
         return savedOrder;
@@ -61,4 +70,10 @@ export class OrderService {
             return null;
         });
     }
+}
+
+function extractErrorMessage(fullErrorMessage: string): string {
+    const lines = fullErrorMessage.split('\n');
+    // Возвращаем последнюю непустую строку
+    return lines.reverse().find((line) => line.trim() !== '');
 }

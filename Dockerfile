@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-
+COPY ./prisma prisma
 COPY yarn.lock ./
 RUN yarn install
 COPY . .
@@ -26,7 +26,9 @@ COPY yarn.lock ./
 RUN yarn install
 # COPY . .
 COPY --from=development /usr/src/app/dist ./dist
+COPY --chown=node:node --from=development /usr/src/app/prisma ./prisma
 # COPY --from=development /usr/src/app/client ./dist/client
+RUN yarn generate
 EXPOSE 3003
 USER node
 

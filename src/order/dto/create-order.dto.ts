@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Order, OrderStatus, OrderType } from '@prisma/client';
 import { Exclude } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class CreateOrderDto implements Order {
     @Exclude()
@@ -23,6 +23,7 @@ export class CreateOrderDto implements Order {
     @IsString()
     @IsNotEmpty()
     @ApiProperty({ description: 'Order phone mask 79510993468', nullable: false })
+    @Matches(/^7\d{10}$/, { message: 'Неверный формат номера телефона: маска 79510993468' })
     phone: string;
 
     @IsString()
