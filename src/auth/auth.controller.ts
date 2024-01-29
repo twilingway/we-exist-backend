@@ -26,9 +26,13 @@ import { Tokens } from './interfaces';
 import { handleTimeoutAndErrors } from '@common/helpers';
 import { YandexGuard } from './guargs/yandex.guard';
 import { Provider } from '@prisma/client';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { LoginResponse } from './responses/login.response';
+import { RegisterResponse } from './responses/register.response';
 
 const REFRESH_TOKEN = 'refreshtoken';
 
+@ApiTags('Auth')
 @Public()
 @Controller('auth')
 export class AuthController {
@@ -40,6 +44,11 @@ export class AuthController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @Post('register')
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Success',
+        type: RegisterResponse,
+    })
     async register(@Body() dto: RegisterDto) {
         const user = await this.authService.register(dto);
         if (!user) {
@@ -47,10 +56,16 @@ export class AuthController {
                 `Не получается зарегистрировать пользователя с данными ${JSON.stringify(dto)}`,
             );
         }
-        return new UserResponse(user);
+        return user;
+        // return new UserResponse(user);
     }
 
     @Post('login')
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Success',
+        type: LoginResponse,
+    })
     async login(@Body() dto: LoginDto, @Res() res: Response, @UserAgent() agent: string) {
         const tokens = await this.authService.login(dto, agent);
         if (!tokens) {
@@ -71,6 +86,11 @@ export class AuthController {
     }
 
     @Get('refresh-tokens')
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Success',
+        type: LoginResponse,
+    })
     async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response, @UserAgent() agent: string) {
         if (!refreshToken) {
             throw new UnauthorizedException();

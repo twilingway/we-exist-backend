@@ -50,6 +50,7 @@ model Order {
   name        String?
   user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String?
+  description String?
   orderStatus OrderStatus @default(NEW) @map("order_status")
   orderType   OrderType   @map("order_type")
   createdAt   DateTime    @default(now()) @map("created_at")

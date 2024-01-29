@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Order, OrderStatus, OrderType } from '@prisma/client';
 import { Exclude } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class OrderResponse implements Order {
     @ApiProperty({ description: 'Order id', nullable: false })
@@ -21,13 +21,20 @@ export class OrderResponse implements Order {
     @ApiProperty({ description: 'Order name', nullable: true, required: false })
     name: string | null;
 
-    @ApiProperty({ description: 'Order name', nullable: false, enum: OrderStatus })
-    orderStatus: OrderStatus;
-
-    @Exclude()
+    // @Exclude()
+    @ApiProperty({ description: 'Order userId', nullable: false })
     userId: string;
 
-    @Exclude()
+    @IsString()
+    @ApiProperty({ description: 'Order description', nullable: true, required: false })
+    description: string | null;
+
+    @IsEnum(OrderStatus)
+    @ApiProperty({ description: 'Order status', nullable: false, enum: OrderStatus })
+    orderStatus: OrderStatus;
+
+    @IsEnum(OrderType)
+    @ApiProperty({ description: 'Order orderType', nullable: false, enum: OrderType })
     orderType: OrderType;
 
     @ApiProperty({ description: 'Order createdAt', nullable: false })

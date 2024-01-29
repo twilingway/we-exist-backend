@@ -14,6 +14,8 @@ export class CreateOrderDto implements Order {
     updatedAt: Date;
     @Exclude()
     id: number;
+    @Exclude()
+    description: string;
 
     @IsString()
     @IsNotEmpty()
