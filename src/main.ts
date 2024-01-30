@@ -9,8 +9,8 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe());
     app.setGlobalPrefix('api');
     app.enableCors({
-        origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
-        // methods: ['GET', 'POST'],
+        origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://i-exist.twiling.ru'],
+        methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
         credentials: true,
     });
     app.use(cookieParser());
