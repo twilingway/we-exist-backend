@@ -9,8 +9,14 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe());
     app.setGlobalPrefix('api');
     app.enableCors({
-        origin: '*',
-        methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+        origin: (origin, callback) => {
+            const allowedOrigins = ['http://localhost:5173', 'https://estsvo.ru'];
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true,
     });
     app.use(cookieParser());

@@ -106,11 +106,13 @@ export class AuthController {
         if (!tokens) {
             throw new UnauthorizedException();
         }
+
         res.cookie(REFRESH_TOKEN, tokens.refreshToken.token, {
             httpOnly: true,
-            sameSite: 'none',
+            sameSite: this.configService.get('NODE_ENV', 'development') === 'production' ? 'lax' : 'none',
             expires: new Date(tokens.refreshToken.exp),
-            secure: this.configService.get('NODE_ENV', 'development') === 'production',
+            // secure: this.configService.get('NODE_ENV', 'development') === 'production',
+            secure: true,
             path: '/',
         });
         res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken });
