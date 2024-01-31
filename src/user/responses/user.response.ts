@@ -3,7 +3,7 @@ import { Provider, Role, User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 import { IsString, IsUUID } from 'class-validator';
 
-export class UserResponse implements User {
+export class UserData implements User {
     @IsUUID()
     @IsString()
     @ApiProperty({ description: 'user id', nullable: false })
@@ -43,4 +43,17 @@ export class UserResponse implements User {
     //         Object.assign(this, user);
     //     }
     // }
+}
+
+export class UserResponse {
+    @ApiProperty({ description: 'user total', nullable: false })
+    total: number;
+    @ApiProperty({ description: 'user data', nullable: false, isArray: true })
+    data: UserData[];
+    @ApiProperty({ description: 'user page', nullable: false })
+    page: number;
+    @ApiProperty({ description: 'user limit', nullable: false })
+    limit: number;
+    @ApiProperty({ description: 'user totalPages', nullable: false })
+    totalPages: number;
 }

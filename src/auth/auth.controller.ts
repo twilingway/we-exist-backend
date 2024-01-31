@@ -16,7 +16,7 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserResponse } from '@user/responses';
+import { UserData, UserResponse } from '@user/responses';
 import { Request, Response } from 'express';
 import { map, mergeMap, tap } from 'rxjs';
 import { AuthService } from './auth.service';
@@ -56,8 +56,8 @@ export class AuthController {
                 `Не получается зарегистрировать пользователя с данными ${JSON.stringify(dto)}`,
             );
         }
-        return user;
-        // return new UserResponse(user);
+        // return user;
+        return new UserData(user);
     }
 
     @Post('login')

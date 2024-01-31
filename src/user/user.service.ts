@@ -11,6 +11,8 @@ import { UpdateOrderDto } from 'src/order/dto/update-order.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 import { extractErrorMessage } from '@common/utils/extract-error-message.util';
+import { QueryParamsDto } from '@common/dto';
+import { UserData, UserResponse } from './responses';
 
 @Injectable()
 export class UserService {
@@ -45,16 +47,16 @@ export class UserService {
         return savedUser;
     }
 
-    async updateUser(id: string, order: Partial<UpdateUserDto>) {
-        const updateOrder = await this.prismaService.user
+    async updateUser(id: string, user: Partial<UpdateUserDto>) {
+        const updateUser = await this.prismaService.user
             .update({
                 where: {
                     id: id,
                 },
                 data: {
                     // email: order.email ?? undefined,
-                    roles: order?.roles ?? undefined,
-                    isBlocked: order?.isBlocked ?? undefined,
+                    roles: user?.roles ?? undefined,
+                    isBlocked: user?.isBlocked ?? undefined,
                 },
             })
             .catch((error) => {
@@ -80,17 +82,18 @@ export class UserService {
                 }
                 throw new HttpException('Внутренняя ошибка сервера', HttpStatus.INTERNAL_SERVER_ERROR);
             });
-
-        return updateOrder;
-
-        throw new ForbiddenException();
+        if (updateUser) {
+            await Promise.all([this.cacheManager.del(id), this.cacheManager.del(user.email)]);
+        }
+        return updateUser;
     }
 
-    async findOne(idOrEmail: string, isReset = false): Promise<User> {
+    async findOne(idOrEmail: string, isReset = false) {
         if (isReset) {
             await this.cacheManager.del(idOrEmail);
         }
         const user = await this.cacheManager.get<User>(idOrEmail);
+
         if (!user) {
             const user = await this.prismaService.user.findFirst({
                 where: {
@@ -100,14 +103,18 @@ export class UserService {
             if (!user) {
                 return null;
             }
+
             await this.cacheManager.set(idOrEmail, user, convertToSecondsUtil(this.configService.get('JWT_EXP')));
+
             return user;
         }
+
         return user;
     }
 
-    async findAll(user: JwtPayload): Promise<User[]> {
-        let users;
+    async findAll(user: JwtPayload, queryParams: QueryParamsDto): Promise<UserResponse> {
+        const { page = 1, limit = 10, search, roles } = queryParams;
+        // let users;
         // if (user.roles.includes(Role.MANAGER)) {
         //     users = await this.prismaService.user.findMany({
         //         where: {
@@ -119,15 +126,36 @@ export class UserService {
         //         },
         //     });
         // }
-        if (user.roles.includes(Role.ADMIN)) {
-            users = await this.prismaService.user.findMany();
-        }
+        const where = search
+            ? {
+                  OR: [{ email: { contains: search } }],
+              }
+            : {};
 
-        if (!users) {
-            return null;
+        if (roles && roles.length > 0) {
+            where['roles'] = {
+                hasEvery: Array.isArray(roles) ? roles : [roles], // Или используйте другой подход в зависимости от вашего случая
+            };
         }
-        // await this.cacheManager.set(idOrEmail, user, convertToSecondsUtil(this.configService.get('JWT_EXP')));
-        return users;
+        if (user.roles.includes(Role.ADMIN)) {
+            const [data, total] = await Promise.all([
+                this.prismaService.user.findMany({
+                    where,
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    // ...другие параметры выборки
+                }),
+                this.prismaService.user.count({ where }), // Подсчитывает общее количество записей
+            ]);
+
+            return {
+                total,
+                data: data.map((d) => new UserData(d)),
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            };
+        }
     }
 
     async delete(id: string, user: JwtPayload) {

@@ -31,5 +31,5 @@ export function convertToSecondsUtil(timeStr: string) {
 
     const num = parseInt(timeStr.slice(0, -1));
 
-    return num * multiplier;
+    return num * multiplier * 1000;
 }

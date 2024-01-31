@@ -15,23 +15,23 @@ import {
     HttpStatus,
     Patch,
     ParseIntPipe,
+    Query,
+    UsePipes,
+    ValidationPipe,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { UserResponse } from './responses';
+import { Role, User } from '@prisma/client';
+import { UserData, UserResponse } from './responses';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { RolesGuard } from '@auth/guargs/role.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { QueryParamsDto } from '@common/dto';
 
 @ApiBearerAuth('JWT-auth')
 @ApiTags('Users')
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) {}
-    // @Post()
-    // createUser(@Body() dto) {
-    //     return this.userService.save(dto);
-    // }
 
     @Get(':idOrEmail')
     @UseInterceptors(ClassSerializerInterceptor)
@@ -42,31 +42,32 @@ export class UserController {
     })
     async findOneUser(@Param('idOrEmail') idOrEmail: string) {
         const user = await this.userService.findOne(idOrEmail);
-        return new UserResponse(user);
+        return new UserData(user);
     }
 
+    @UsePipes(new ValidationPipe({ transform: true }))
     @Get()
-    @Roles('ADMIN')
     @UseGuards(RolesGuard)
-    // @UseInterceptors(ClassSerializerInterceptor)
+    @Roles(Role.ADMIN)
+    @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({ summary: 'ПОлучение списка всех пользователей (доступно только под админ учёткой)' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit of items per page' })
+    @ApiQuery({ name: 'search', required: false, type: String, description: 'Search query' })
+    @ApiQuery({ name: 'roles', required: false, type: Array, description: 'Roles query' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Success',
-        type: [UserResponse],
-        // schema: {
-        //     type: 'array',
-        //     items: { $ref: getSchemaPath(UserResponse) },
-        // },
+        type: UserResponse,
     })
-    async findAllUser(@CurrentUser() user: JwtPayload): Promise<UserResponse[]> {
-        const users = await this.userService.findAll(user);
-        return users.map((user) => new UserResponse(user));
+    async findAllUser(@CurrentUser() user: JwtPayload, @Query() queryParams: QueryParamsDto): Promise<UserResponse> {
+        const users = await this.userService.findAll(user, queryParams);
+        return users;
     }
 
     @Delete(':id')
-    @Roles('ADMIN')
     @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
     @ApiOperation({ summary: 'Удаление пользователя по id' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -77,40 +78,24 @@ export class UserController {
             properties: {
                 id: { type: 'string' },
             },
-            // items: { $ref: getSchemaPath(UserResponse) },
         },
     })
     async deleteUser(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
         return this.userService.delete(id, user);
     }
 
-    // @Get()
-    // me(@CurrentUser() user: JwtPayload) {
-    //     return user;
-    // }
-
-    // @UseInterceptors(ClassSerializerInterceptor)
-    // @Put()
-    // async updateUser(@Body() body: Partial<User>) {
-    //     const user = await this.userService.save(body);
-    //     return new UserResponse(user);
-    // }
-
     @Patch(':id')
-    @Roles('ADMIN')
+    @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
     @ApiOperation({ summary: 'Изменение пользователя (доступно только под админ учёткой)' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Success',
         type: UpdateUserDto,
-        // schema: {
-        //     type: 'array',
-        //     items: { $ref: getSchemaPath(UserResponse) },
-        // },
     })
     async updateUser(@Param('id', ParseUUIDPipe) id: string, @Body() body: Partial<UpdateUserDto>) {
         const user = await this.userService.updateUser(id, body);
-        return new UserResponse(user);
+        return new UserData(user);
     }
 }
