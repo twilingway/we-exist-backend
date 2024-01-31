@@ -1,4 +1,4 @@
-sudo docker run -p 0.0.0.0:3003:3003/tcp -d --restart=always --env-file=/home/admin/sites/i-exist/.env.production twilingway/we-exist:0.0.10
+sudo docker run -p 0.0.0.0:3003:3003/tcp -d --restart=always --env-file=/home/admin/sites/i-exist/.env.production twilingway/we-exist:0.0.11
 sudo docker ps -a
 sudo docker stop <container ID>
 sudo docker rm <container ID>

@@ -48,7 +48,7 @@ export class UserData implements User {
 export class UserResponse {
     @ApiProperty({ description: 'user total', nullable: false })
     total: number;
-    @ApiProperty({ description: 'user data', nullable: false, isArray: true })
+    @ApiProperty({ type: [UserData], description: 'user data', nullable: false })
     data: UserData[];
     @ApiProperty({ description: 'user page', nullable: false })
     page: number;
