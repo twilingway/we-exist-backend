@@ -49,7 +49,7 @@ export class OrderController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Success',
-        type: [OrderResponse],
+        type: OrderResponse,
     })
     @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
     async findAllOrders(@CurrentUser() user: JwtPayload, @Query() queryParams: QueryParamsDto) {
