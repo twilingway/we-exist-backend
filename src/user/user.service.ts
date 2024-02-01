@@ -146,7 +146,6 @@ export class UserService {
                         this.logger.error(error);
                         return null;
                     }),
-                ,
                 this.prismaService.user.count({ where }), // Подсчитывает общее количество записей
             ]);
 
