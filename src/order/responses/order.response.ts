@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Order, OrderStatus, OrderType } from '@prisma/client';
+import { UserData } from '@user/responses';
 import { Exclude } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
@@ -42,6 +43,8 @@ export class OrderData implements Order {
 
     @ApiProperty({ description: 'Order updatedAt', nullable: false })
     updatedAt: Date;
+    @ApiProperty({ description: 'Order user', nullable: true })
+    user: UserData | null;
 
     constructor(order?: Order) {
         if (order) {

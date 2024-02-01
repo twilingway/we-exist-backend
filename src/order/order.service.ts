@@ -45,12 +45,11 @@ export class OrderService {
 
     async updateOrder(id: number, order: Partial<UpdateOrderDto>, user: JwtPayload) {
         if (user.roles.includes(Role.ADMIN) || user.roles.includes(Role.MANAGER)) {
-            console.log('order :>> ', order);
-            let user = null;
-            if (order.userId) {
-                user = await this.prismaService.user.findUnique({ where: { id: order.userId } });
-            }
-            console.log('user :>> ', user);
+            // let user = null;
+            // if (order.userId) {
+            //     user = await this.prismaService.user.findUnique({ where: { id: order.userId } });
+            // }
+
             const updateOrder = await this.prismaService.order
                 .update({
                     where: {
@@ -70,9 +69,19 @@ export class OrderService {
                         // },
                         userId: order.userId,
                     },
-                    // include: {
-                    //     user: true,
-                    // },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                email: true,
+                                provider: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                roles: true,
+                                isBlocked: true,
+                            },
+                        },
+                    },
                 })
                 .catch((error) => {
                     this.logger.error(error);
@@ -84,12 +93,16 @@ export class OrderService {
                     }
                     if (error instanceof PrismaClientKnownRequestError) {
                         // Проверяем код ошибки Prisma
+
                         if (error.code === 'P2025') {
                             // Запись с таким id не найдена
                             throw new HttpException(`Error: Запись с таким ID не найдена.`, HttpStatus.BAD_REQUEST);
                         } else {
                             // Другие ошибки Prisma
-                            console.error('Произошла ошибка при обновлении ордера:', error);
+                            throw new HttpException(
+                                `Error: Произошла ошибка при обновлении ордера.`,
+                                HttpStatus.BAD_REQUEST,
+                            );
                         }
                     } else {
                         // Неизвестные ошибки
@@ -163,9 +176,19 @@ export class OrderService {
                         take: limit,
 
                         orderBy: { id: 'desc' },
-                        // include: {
-                        //     user: true,
-                        // },
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                    provider: true,
+                                    createdAt: true,
+                                    updatedAt: true,
+                                    roles: true,
+                                    isBlocked: true,
+                                },
+                            },
+                        },
                     })
                     .catch((error) => {
                         this.logger.error(error);
