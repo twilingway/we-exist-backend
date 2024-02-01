@@ -6,9 +6,10 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { OrderModule } from './order/order.module';
+import { SseModule } from './sse/sse.module';
 
 @Module({
-    imports: [UserModule, PrismaModule, AuthModule, ConfigModule.forRoot({ isGlobal: true }), OrderModule],
+    imports: [UserModule, PrismaModule, AuthModule, ConfigModule.forRoot({ isGlobal: true }), OrderModule, SseModule],
     providers: [
         {
             provide: APP_GUARD,

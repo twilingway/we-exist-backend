@@ -14,6 +14,8 @@ import {
     Put,
     Patch,
     Query,
+    UsePipes,
+    ValidationPipe,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -40,6 +42,7 @@ export class OrderController {
     constructor(private readonly orderService: OrderService) {}
 
     @Get()
+    @UsePipes(new ValidationPipe({ transform: true }))
     @Roles('ADMIN' || 'MANAGER')
     @UseGuards(RolesGuard)
     @ApiBearerAuth('JWT-auth')

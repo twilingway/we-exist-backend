@@ -8,6 +8,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { extractErrorMessage } from '@common/utils/extract-error-message.util';
 import { QueryParamsDto } from '@common/dto';
 import { OrderData, OrderResponse } from './responses';
+import { SseService } from 'src/sse/sse.service';
 
 @Injectable()
 export class OrderService {
@@ -16,6 +17,7 @@ export class OrderService {
         private readonly prismaService: PrismaService,
         // @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly configService: ConfigService,
+        private readonly sseService: SseService,
     ) {}
 
     async createOrder(order: Partial<Order>) {
@@ -39,6 +41,11 @@ export class OrderService {
                 }
                 throw new HttpException('Внутренняя ошибка сервера', HttpStatus.INTERNAL_SERVER_ERROR);
             });
+
+        // private readonly sseService: SseService
+        if (savedOrder) {
+            this.sseService.sendToAll({ event: 'newOrder', data: savedOrder });
+        }
 
         return savedOrder;
     }
