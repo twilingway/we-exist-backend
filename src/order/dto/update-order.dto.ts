@@ -4,7 +4,7 @@ import { Exclude } from 'class-transformer';
 import { ArrayNotEmpty, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
 
 export class UpdateOrderDto implements Order {
-    @Exclude()
+    @ApiProperty({ description: 'Order userId', nullable: true, required: false })
     userId: string;
     @Exclude()
     createdAt: Date;

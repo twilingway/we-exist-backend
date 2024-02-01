@@ -45,6 +45,12 @@ export class OrderService {
 
     async updateOrder(id: number, order: Partial<UpdateOrderDto>, user: JwtPayload) {
         if (user.roles.includes(Role.ADMIN) || user.roles.includes(Role.MANAGER)) {
+            console.log('order :>> ', order);
+            let user = null;
+            if (order.userId) {
+                user = await this.prismaService.user.findUnique({ where: { id: order.userId } });
+            }
+            console.log('user :>> ', user);
             const updateOrder = await this.prismaService.order
                 .update({
                     where: {
@@ -57,7 +63,16 @@ export class OrderService {
                         description: order?.description ?? undefined,
                         orderType: order.orderType ?? undefined,
                         orderStatus: order.orderStatus ?? undefined,
+                        // user: {
+                        //     connect: {
+                        //         id: order?.userId ?? undefined,
+                        //     },
+                        // },
+                        userId: order.userId,
                     },
+                    // include: {
+                    //     user: true,
+                    // },
                 })
                 .catch((error) => {
                     this.logger.error(error);
@@ -148,6 +163,9 @@ export class OrderService {
                         take: limit,
 
                         orderBy: { id: 'desc' },
+                        // include: {
+                        //     user: true,
+                        // },
                     })
                     .catch((error) => {
                         this.logger.error(error);
