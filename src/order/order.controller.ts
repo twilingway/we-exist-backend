@@ -62,7 +62,7 @@ export class OrderController {
     @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({ summary: 'Получение всех заявок по номеру телефона' })
     @ApiParam({ name: 'phone', required: true, description: 'phone mask 79510993468' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Success', type: [OrderResponse] })
+    @ApiResponse({ status: HttpStatus.OK, description: 'Success', type: OrderResponse })
     @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
     async findOneUser(@Param('phone') phone: string) {
         const orders = await this.orderService.findAllByPhone(phone);
