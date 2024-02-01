@@ -36,10 +36,11 @@ export class UserController {
 
     @Get(':idOrEmail')
     @UseInterceptors(ClassSerializerInterceptor)
+    // @ApiPagination()
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Success',
-        type: [UserResponse],
+        type: UserData,
     })
     async findOneUser(@Param('idOrEmail') idOrEmail: string) {
         const user = await this.userService.findOne(idOrEmail);
