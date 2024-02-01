@@ -26,6 +26,7 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags, getSchemaP
 import { RolesGuard } from '@auth/guargs/role.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryParamsDto } from '@common/dto';
+import { ApiPagination } from '@common/decorators/api-pagination.decorator';
 
 @ApiBearerAuth('JWT-auth')
 @ApiTags('Users')
@@ -51,10 +52,8 @@ export class UserController {
     @Roles(Role.ADMIN)
     @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({ summary: 'ПОлучение списка всех пользователей (доступно только под админ учёткой)' })
-    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
-    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit of items per page' })
-    @ApiQuery({ name: 'search', required: false, type: String, description: 'Search query' })
-    @ApiQuery({ name: 'roles', required: false, type: Array, description: 'Roles query' })
+    @ApiPagination()
+    @ApiQuery({ name: 'roles', required: false, enum: Role, isArray: true, description: 'Roles query' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Success',

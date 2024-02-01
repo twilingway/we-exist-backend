@@ -114,37 +114,39 @@ export class UserService {
 
     async findAll(user: JwtPayload, queryParams: QueryParamsDto): Promise<UserResponse> {
         const { page = 1, limit = 10, search, roles } = queryParams;
-        // let users;
-        // if (user.roles.includes(Role.MANAGER)) {
-        //     users = await this.prismaService.user.findMany({
-        //         where: {
-        //             NOT: {
-        //                 roles: {
-        //                     hasEvery: ['ADMIN', 'MANAGER'],
-        //                 },
-        //             },
-        //         },
-        //     });
-        // }
-        const where = search
-            ? {
-                  OR: [{ email: { contains: search } }],
-              }
-            : {};
+        let where = {};
+        const searchConditions = [];
+        if (search) {
+            searchConditions.push({ email: { contains: search, mode: 'insensitive' } });
+        }
 
         if (roles && roles.length > 0) {
-            where['roles'] = {
-                hasEvery: Array.isArray(roles) ? roles : [roles], // Или используйте другой подход в зависимости от вашего случая
-            };
+            searchConditions.push({
+                roles: {
+                    hasEvery: Array.isArray(roles) ? roles : [roles], // Или используйте другой подход в зависимости от вашего случая
+                },
+            });
         }
+
+        if (searchConditions.length) {
+            where = { OR: searchConditions };
+        }
+
         if (user.roles.includes(Role.ADMIN)) {
             const [data, total] = await Promise.all([
-                this.prismaService.user.findMany({
-                    where,
-                    skip: (page - 1) * limit,
-                    take: limit,
-                    // ...другие параметры выборки
-                }),
+                this.prismaService.user
+                    .findMany({
+                        where,
+                        skip: (page - 1) * limit,
+                        take: limit,
+                        // ...другие параметры выборки
+                        orderBy: { id: 'desc' },
+                    })
+                    .catch((error) => {
+                        this.logger.error(error);
+                        return null;
+                    }),
+                ,
                 this.prismaService.user.count({ where }), // Подсчитывает общее количество записей
             ]);
 

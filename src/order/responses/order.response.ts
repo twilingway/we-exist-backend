@@ -3,7 +3,7 @@ import { Order, OrderStatus, OrderType } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
-export class OrderResponse implements Order {
+export class OrderData implements Order {
     @ApiProperty({ description: 'Order id', nullable: false })
     id: number;
 
@@ -48,4 +48,17 @@ export class OrderResponse implements Order {
             Object.assign(this, order);
         }
     }
+}
+
+export class OrderResponse {
+    @ApiProperty({ description: 'order total', nullable: false })
+    total: number;
+    @ApiProperty({ type: [OrderData], description: 'order data', nullable: false })
+    data: OrderData[];
+    @ApiProperty({ description: 'order page', nullable: false })
+    page: number;
+    @ApiProperty({ description: 'order limit', nullable: false })
+    limit: number;
+    @ApiProperty({ description: 'order totalPages', nullable: false })
+    totalPages: number;
 }

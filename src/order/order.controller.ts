@@ -13,6 +13,7 @@ import {
     UseGuards,
     Put,
     Patch,
+    Query,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -25,11 +26,13 @@ import {
 } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderService } from './order.service';
-import { OrderResponse } from './responses';
+import { OrderData, OrderResponse } from './responses';
 import { JwtPayload } from '@auth/interfaces';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '@auth/guargs/role.guard';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { ApiPagination } from '@common/decorators/api-pagination.decorator';
+import { QueryParamsDto } from '@common/dto';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -41,6 +44,7 @@ export class OrderController {
     @UseGuards(RolesGuard)
     @ApiBearerAuth('JWT-auth')
     @UseInterceptors(ClassSerializerInterceptor)
+    @ApiPagination()
     @ApiOperation({ summary: 'Получение всех заявок' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -48,8 +52,8 @@ export class OrderController {
         type: [OrderResponse],
     })
     @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
-    async findAllOrders(@CurrentUser() user: JwtPayload) {
-        const orders = await this.orderService.findAll(user);
+    async findAllOrders(@CurrentUser() user: JwtPayload, @Query() queryParams: QueryParamsDto) {
+        const orders = await this.orderService.findAll(user, queryParams);
         return orders;
     }
 
@@ -89,7 +93,7 @@ export class OrderController {
     })
     async createOrder(@Body() body: CreateOrderDto) {
         const order = await this.orderService.createOrder(body);
-        return new OrderResponse(order);
+        return new OrderData(order);
     }
 
     @Delete(':id')
@@ -101,7 +105,7 @@ export class OrderController {
     @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
     async deleteOrder(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
         const order = await this.orderService.delete(id, user);
-        return new OrderResponse(order);
+        return new OrderData(order);
     }
 
     @Roles('ADMIN' || 'MANAGER')
@@ -135,6 +139,6 @@ export class OrderController {
         @CurrentUser() user: JwtPayload,
     ) {
         const order = await this.orderService.updateOrder(id, body, user);
-        return new OrderResponse(order);
+        return new OrderData(order);
     }
 }

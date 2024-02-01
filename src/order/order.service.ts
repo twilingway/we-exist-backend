@@ -1,11 +1,13 @@
 import { JwtPayload } from '@auth/interfaces';
 import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Order, OrderStatus, Role } from '@prisma/client';
+import { Order, OrderStatus, OrderType, Role } from '@prisma/client';
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 import { PrismaService } from '@prisma/prisma.service';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { extractErrorMessage } from '@common/utils/extract-error-message.util';
+import { QueryParamsDto } from '@common/dto';
+import { OrderData, OrderResponse } from './responses';
 
 @Injectable()
 export class OrderService {
@@ -105,18 +107,62 @@ export class OrderService {
         return orders;
     }
 
-    async findAll(user: JwtPayload): Promise<Order[]> {
+    async findAll(user: JwtPayload, queryParams: QueryParamsDto): Promise<OrderResponse> {
         if (user.roles.includes(Role.ADMIN) || user.roles.includes(Role.MANAGER)) {
-            const orders = await this.prismaService.order
-                .findMany({
-                    orderBy: { id: 'desc' },
-                })
-                .catch((error) => {
-                    this.logger.error(error);
-                    return null;
-                });
+            const { page = 1, limit = 10, search } = queryParams;
 
-            return orders;
+            let where = {};
+            const searchConditions = [];
+
+            if (search) {
+                // Проверка на соответствие enum
+                const enumSearch = Object.values(OrderStatus).find((status) => status === search.toUpperCase());
+                if (enumSearch) {
+                    searchConditions.push({ orderStatus: enumSearch });
+                }
+
+                const typeSearch = Object.values(OrderType).find((type) => type === search.toUpperCase());
+                if (typeSearch) {
+                    searchConditions.push({ orderType: typeSearch });
+                }
+
+                // Проверка строковых полей
+                searchConditions.push(
+                    { address: { contains: search, mode: 'insensitive' } },
+                    { phone: { contains: search, mode: 'insensitive' } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                    // Другие поля по необходимости...
+                );
+            }
+
+            if (searchConditions.length) {
+                where = { OR: searchConditions };
+            }
+
+            const [data, total] = await Promise.all([
+                this.prismaService.order
+                    .findMany({
+                        where,
+                        skip: (page - 1) * limit,
+                        take: limit,
+
+                        orderBy: { id: 'desc' },
+                    })
+                    .catch((error) => {
+                        this.logger.error(error);
+                        return null;
+                    }),
+                this.prismaService.order.count({ where }), // Подсчитывает общее количество записей
+            ]);
+
+            return {
+                total,
+                data: data.map((d) => new OrderData(d)),
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            };
         }
         throw new ForbiddenException();
     }
