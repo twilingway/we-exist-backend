@@ -10,7 +10,7 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     app.enableCors({
         origin: (origin, callback) => {
-            const allowedOrigins = ['http://localhost:5173', 'https://estsvo.ru', 'https://admin.estsvo.ru/'];
+            const allowedOrigins = ['http://localhost:5173', 'https://estsvo.ru', 'https://admin.estsvo.ru'];
             if (!origin || allowedOrigins.includes(origin)) {
                 callback(null, true);
             } else {
